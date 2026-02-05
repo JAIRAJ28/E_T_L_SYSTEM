@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node index.js",
     "api": "node index.js",
+    "start:all": "concurrently -k -n API,WORKER,CRON -c blue,green,magenta \"node index.js\" \"node workers/workerRunner.js\" \"node cron/cronProcess.js\"",
     "worker": "node workers/workerRunner.js",
     "cron": "node cron/cronProcess.js",
     "dev:api": "nodemon index.js",
