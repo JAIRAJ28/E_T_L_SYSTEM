@@ -1,6 +1,7 @@
 # E_T_L_SYSTEM
   
-  Job Import System (XML Feeds → Redis Queue → MongoDB + Import History)
+ Backend
+- Job Import System (XML Feeds → Redis Queue → MongoDB + Import History)
    
     Scalable job import system using Node.js, MongoDB, Redis (BullMQ), and Next.js. Fetches XML job feeds both existing and new type of RSS or atom is normalized into common schema and then converts to JSON, queues jobs for background processing, performs if exists update or insert to into MongoDB, and tracks import history (new/updated/failed). Includes admin UI for monitoring imports and logs.
     Tech Stack: **Node.js (Express)**, **MongoDB (Mongoose)**, **Redis**, **BullMQ**, **Next.js (client)**  
@@ -54,3 +55,36 @@ Create `Server/.env`:
     HTTP_TIMEOUT_MS=15000
     RUN_LOCK_TTL_SEC=3600
     NODE_ENV=development
+
+
+
+
+FrontEnd-
+
+- App location: `my-app/`
+- Framework: Next.js (App Router) + Tailwind CSS
+- Purpose: Admin panel to view import history, run imports, and see live updates.
+
+### FrontEnd Features
+- Import History table with filters (status, search, date range) and pagination
+- Run Import Now button
+- Import Run Details view with summary + failures
+- Live updates using SSE (no refresh needed)
+
+### FrontEnd Environment
+Create `my-app/.env.local`:
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:2001
+```
+
+### FrontEnd Run
+```bash
+cd my-app
+npm install
+npm run dev
+```
+
+### FrontEnd Pages
+- `/` Home
+- `/import-history` Import History list
+- `/import-history/[runId]` Import Run Details
