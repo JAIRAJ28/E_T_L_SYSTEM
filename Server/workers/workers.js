@@ -6,7 +6,6 @@ const { JOB_TYPES } = require("../config/queue");
 const Job = require("../model/job_model");
 const ImportLog = require("../model/import_logs_model");
 
-
 function capFailures(existingFailures, limit) {
   if (existingFailures >= limit) return 0;
   return limit - existingFailures;
@@ -44,7 +43,14 @@ async function processImportFeedBatch(job) {
   const invalidFailures = [];
 
   for (const j of jobsPayload) {
-    if ( !j || !j.dedupeKey || !j.jobUrl || !j.title || !j.sourceUrl || !j.sourceName) {
+    if (
+      !j ||
+      !j.dedupeKey ||
+      !j.jobUrl ||
+      !j.title ||
+      !j.sourceUrl ||
+      !j.sourceName
+    ) {
       invalidFailures.push({
         dedupeKey: j?.dedupeKey || null,
         reasonCode: "VALIDATION_ERROR",
@@ -97,7 +103,7 @@ async function processImportFeedBatch(job) {
       update: {
         $set: {
           ...j,
-          updatedAt: now, 
+          updatedAt: now,
         },
         $setOnInsert: {
           createdAt: now,
@@ -133,10 +139,16 @@ async function processImportFeedBatch(job) {
     throw e;
   }
   const batchImported = valid.length;
-  const failuresToPush = invalidFailures; 
-  await updateImportLogAfterBatch({runId,totalBatches,batchImported,newCount,updatedCount,
+  const failuresToPush = invalidFailures;
+  await updateImportLogAfterBatch({
+    runId,
+    totalBatches,
+    batchImported,
+    newCount,
+    updatedCount,
     failedCount: invalidFailures.length,
-    failuresToPush,durationMs: Date.now() - start,
+    failuresToPush,
+    durationMs: Date.now() - start,
   });
   return {
     runId,
@@ -181,8 +193,8 @@ async function updateImportLogAfterBatch({
       newJobs: newCount,
       updatedJobs: updatedCount,
       failedJobs: failedCount,
-      "meta.processedBatches": 1,
-      "meta.attempts": 1,
+      "data.processedBatches": 1,
+      "data.attempts": 1,
     },
   };
   if (pushFailures.length > 0) {
@@ -190,10 +202,12 @@ async function updateImportLogAfterBatch({
   }
   await ImportLog.updateOne({ runId }, update);
   const latest = await ImportLog.findOne({ runId })
-    .select("status startedAt failedJobs meta.totalBatches meta.processedBatches")
+    .select(
+      "status startedAt failedJobs data.totalBatches data.processedBatches",
+    )
     .lean();
-  const total = latest?.meta?.totalBatches ?? totalBatches ?? 0;
-  const processed = latest?.meta?.processedBatches ?? 0;
+  const total = latest?.data?.totalBatches ?? totalBatches ?? 0;
+  const processed = latest?.data?.processedBatches ?? 0;
   if (latest?.status === "running" && total > 0 && processed >= total) {
     const startedAt = latest?.startedAt
       ? new Date(latest.startedAt).getTime()
@@ -205,7 +219,7 @@ async function updateImportLogAfterBatch({
         $set: {
           status: finalStatus,
           finishedAt: new Date(),
-          "meta.durationMs": Date.now() - startedAt,
+          "data.durationMs": Date.now() - startedAt,
         },
       },
     );

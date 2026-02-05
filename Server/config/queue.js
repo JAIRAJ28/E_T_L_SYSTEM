@@ -3,9 +3,10 @@ const { getRedis } = require("./redis");
 const QUEUE_NAME = "job-import";
 
 let jobImportQueue = null;
-const JOB_TYPES=Object.freeze({
-    IMPORT_FEED_BATCH: "IMPORT_FEED_BATCH",
-  })
+const JOB_TYPES = Object.freeze({
+  IMPORT_FEED_BATCH: "IMPORT_FEED_BATCH",
+});
+
 function getJobImportQueue() {
   if (jobImportQueue) return jobImportQueue;
   const connection = getRedis();
@@ -22,4 +23,4 @@ function getJobImportQueue() {
   return jobImportQueue;
 }
 
-module.exports = { QUEUE_NAME, getJobImportQueue,JOB_TYPES };
+module.exports = { QUEUE_NAME, getJobImportQueue, JOB_TYPES };
