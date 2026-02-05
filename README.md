@@ -5,7 +5,9 @@
     Scalable job import system using Node.js, MongoDB, Redis (BullMQ), and Next.js. Fetches XML job feeds both existing and new type of RSS or atom is normalized into common schema and then converts to JSON, queues jobs for background processing, performs if exists update or insert to into MongoDB, and tracks import history (new/updated/failed). Includes admin UI for monitoring imports and logs.
     Tech Stack: **Node.js (Express)**, **MongoDB (Mongoose)**, **Redis**, **BullMQ**, **Next.js (client)**  
     Bonus: **SSE** real-time import log updates.
+
 ---
+
 ## Features
     - Fetch jobs from multiple XML feeds (Jobicy + HigherEdJobs) -- all apis are added to the apisource.js in cron
     - XML → JSON conversion (RSS/Atom support, both old and new stricter format supported.)
@@ -17,7 +19,8 @@
     - failure samples (capped)
     - Admin APIs for pagination + filtering
     - Added SSE endpoint for real-time updates
-    ---
+
+---
 
 ## Architecture (High Level)
 The system is split into 3 processes:
