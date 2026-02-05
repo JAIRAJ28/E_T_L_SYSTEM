@@ -8,11 +8,17 @@ const ListQuerySchema = z.object({
   status: z.enum(["running", "completed", "partial", "failed"]).optional(),
   from: z.iso.datetime().optional(),
   to: z.iso.datetime().optional(),
+  q: z.string().min(1).optional(),
 });
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 async function listImportLogs(req, res, next) {
   try {
     const q = ListQuerySchema.parse(req.query);
+    console.log(q,"the_q")
     const filter = {};
     if (q.sourceUrl) filter.sourceUrl = q.sourceUrl;
     if (q.status) filter.status = q.status;
@@ -21,31 +27,57 @@ async function listImportLogs(req, res, next) {
       if (q.from) filter.startedAt.$gte = new Date(q.from);
       if (q.to) filter.startedAt.$lte = new Date(q.to);
     }
-    const skip = (q.page - 1) * q.limit;
+    if (q.q && q.q.trim()) {
+      const regex = new RegExp(q.q.trim(), "i");
+
+      filter.$or = [
+        { sourceUrl: regex },
+        { sourceName: regex },
+        { runId: regex },
+        { status: regex },
+      ];
+    }
+    const page = Math.max(1, q.page);
+    const limit = Math.min(100, q.limit);
+    const skip = (page - 1) * limit;
+    const projection = {
+      runId: 1,
+      sourceUrl: 1,
+      sourceName: 1,
+      status: 1,
+      startedAt: 1,
+      finishedAt: 1,
+      totalFetched: 1,
+      totalImported: 1,
+      newJobs: 1,
+      updatedJobs: 1,
+      failedJobs: 1,
+      "data.durationMs": 1,
+    };
     const [items, total] = await Promise.all([
       ImportLog.find(filter)
         .sort({ startedAt: -1 })
         .skip(skip)
-        .limit(q.limit)
-        .select(
-          "runId sourceUrl sourceName status startedAt finishedAt totalFetched totalImported newJobs updatedJobs failedJobs data.durationMs"
-        )
+        .limit(limit)
+        .select(projection)
         .lean(),
+
       ImportLog.countDocuments(filter),
     ]);
-    const totalPages = Math.ceil(total / q.limit) || 1;
+    console.log(items,"items___")
     res.json({
       ok: true,
-      page: q.page,
-      limit: q.limit,
+      page,
+      limit,
       total,
-      totalPages,
+      totalPages: Math.ceil(total / limit) || 1,
       items,
     });
   } catch (err) {
     next(err);
   }
 }
+
 
 async function getImportLogByRunId(req, res, next) {
   try {

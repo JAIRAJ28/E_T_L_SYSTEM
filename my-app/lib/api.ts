@@ -64,6 +64,7 @@ export async function getImportLogs(args?: {
   sourceUrl?: string;
   from?: string; 
   to?: string; 
+  q?: string;
 }) {
   const qs = buildQuery({
     page: args?.page ?? 1,
@@ -72,6 +73,7 @@ export async function getImportLogs(args?: {
     sourceUrl: args?.sourceUrl,
     from: args?.from,
     to: args?.to,
+    q: args?.q,
   });
 
   const data = await request<PaginatedResponse<ImportLogListItem & { data?: any }>>(
@@ -85,9 +87,7 @@ export async function getImportLogs(args?: {
   };
 }
 
-/**
- * GET /api/import-logs/:runId
- */
+
 export async function getImportLog(runId: string) {
   if (!runId) {
     const err: ApiError = { message: "runId is required" };
@@ -106,9 +106,7 @@ export async function getImportLog(runId: string) {
   };
 }
 
-/**
- * POST /api/import/run  { sourceUrl? }
- */
+
 export async function runImportNow(body?: RunImportNowRequest) {
   return request<RunImportNowResponse>(`/api/import/run`, {
     method: "POST",

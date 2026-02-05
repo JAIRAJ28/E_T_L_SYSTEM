@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ImportLogListItem, ImportStatus } from "@/types/importLog";
 import { getImportLogs, runImportNow } from "@/lib/api";
+import { useImportLogsSSE } from "@/hooks/useImportLogsSSE";
 
 const STATUS_OPTIONS: Array<{ label: string; value: ImportStatus | "" }> = [
   { label: "All", value: "" },
@@ -16,12 +17,12 @@ const STATUS_OPTIONS: Array<{ label: string; value: ImportStatus | "" }> = [
 function Badge({ status }: { status: ImportStatus }) {
   const cls =
     status === "completed"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      ? "bg-emerald-100 text-emerald-700 border-emerald-300"
       : status === "running"
-      ? "bg-amber-50 text-amber-700 border-amber-200"
+      ? "bg-sky-100 text-sky-700 border-sky-200"
       : status === "partial"
-      ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-      : "bg-rose-50 text-rose-700 border-rose-200";
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-rose-100 text-rose-700 border-rose-300";
 
   return (
     <span
@@ -41,6 +42,7 @@ function fmtDate(iso?: string) {
 
 export default function ImportHistoryPage() {
   const router = useRouter();
+  const cardShadow = { boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px" };
 
   const [status, setStatus] = useState<ImportStatus | "">("");
   const [sourceUrl, setSourceUrl] = useState("");
@@ -58,6 +60,8 @@ export default function ImportHistoryPage() {
   const [runningImport, setRunningImport] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useImportLogsSSE(true, setItems);
+
   const queryArgs = useMemo(() => {
     const fromIso = from
       ? new Date(`${from}T00:00:00.000Z`).toISOString()
@@ -70,7 +74,7 @@ export default function ImportHistoryPage() {
       page,
       limit,
       status: status || undefined,
-      sourceUrl: sourceUrl.trim() || undefined,
+      q: sourceUrl.trim() || undefined,
       from: fromIso,
       to: toIso,
     };
@@ -93,7 +97,6 @@ export default function ImportHistoryPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryArgs]);
 
   function applyFilters() {
@@ -131,7 +134,7 @@ export default function ImportHistoryPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">Import History</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-slate-700">
             Track each feed import run: Fetched / Imported / New / Updated /
             Failed.
           </p>
@@ -140,21 +143,24 @@ export default function ImportHistoryPage() {
         <button
           onClick={handleRunImportNow}
           disabled={runningImport}
-          className="rounded-lg bg-amber-200 px-4 py-2 text-sm text-slate-900 hover:bg-amber-300 disabled:opacity-60"
+          className="rounded-lg bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600 disabled:opacity-60"
           title="Triggers import now (all feeds if Source URL is empty)"
         >
           {runningImport ? "Running..." : "Run Import Now"}
         </button>
       </div>
 
-      <div className="mt-5 rounded-xl border border-amber-200/80 bg-white p-4">
+      <div
+        className="mt-5 rounded-xl border border-sky-200 bg-white p-4"
+        style={cardShadow}
+      >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
           <div className="md:col-span-3">
-            <label className="block text-xs text-slate-500">Status</label>
+            <label className="block text-xs text-slate-600">Status</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as any)}
-              className="mt-1 w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-400"
+              className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-400"
             >
               {STATUS_OPTIONS.map((o) => (
                 <option key={o.label} value={o.value}>
@@ -165,34 +171,37 @@ export default function ImportHistoryPage() {
           </div>
 
           <div className="md:col-span-5">
-            <label className="block text-xs text-slate-500">
+            <label className="block text-xs text-slate-600">
               FileName (Source URL)
             </label>
             <input
               value={sourceUrl}
               onChange={(e) => setSourceUrl(e.target.value)}
               placeholder="https://jobicy.com/?feed=job_feed"
-              className="mt-1 w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-400"
+              className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-400"
             />
+            {loading && sourceUrl.trim() ? (
+              <div className="mt-1 text-xs text-sky-700">Searching...</div>
+            ) : null}
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-xs text-slate-500">From</label>
+            <label className="block text-xs text-slate-600">From</label>
             <input
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-400"
+              className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-400"
             />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-xs text-slate-500">To</label>
+            <label className="block text-xs text-slate-600">To</label>
             <input
               type="date"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-400"
+              className="mt-1 w-full rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm outline-none focus:border-sky-400"
             />
           </div>
         </div>
@@ -200,18 +209,18 @@ export default function ImportHistoryPage() {
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button
             onClick={applyFilters}
-            className="rounded-lg bg-amber-200 px-3 py-2 text-sm text-slate-900 hover:bg-amber-300"
+            className="rounded-lg bg-sky-500 px-3 py-2 text-sm text-white hover:bg-sky-600"
           >
             Apply
           </button>
           <button
             onClick={clearFilters}
-            className="rounded-lg border border-amber-200 px-3 py-2 text-sm text-slate-700 hover:bg-amber-50"
+            className="rounded-lg border border-sky-200 px-3 py-2 text-sm text-slate-700 hover:bg-sky-50"
           >
             Clear
           </button>
 
-          <div className="ml-auto text-xs text-slate-500">
+          <div className="ml-auto text-xs text-slate-600">
             Total runs: <span className="text-slate-800">{total}</span>
           </div>
         </div>
@@ -223,11 +232,14 @@ export default function ImportHistoryPage() {
         </div>
       ) : null}
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-amber-200 bg-white">
+      <div
+        className="mt-4 overflow-hidden rounded-xl border border-sky-200 bg-white"
+        style={cardShadow}
+      >
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse">
-            <thead className="bg-amber-50">
-              <tr className="text-left text-xs text-slate-600">
+            <thead className="bg-sky-100">
+              <tr className="text-left text-xs text-slate-700">
                 <th className="px-4 py-3">FileName</th>
                 <th className="px-4 py-3">Import Date/Time</th>
                 <th className="px-4 py-3">Total</th>
@@ -240,13 +252,13 @@ export default function ImportHistoryPage() {
             <tbody className="bg-white">
               {loading ? (
                 <tr>
-                  <td className="px-4 py-6 text-sm text-slate-600" colSpan={6}>
+                  <td className="px-4 py-6 text-sm text-slate-700" colSpan={6}>
                     Loading...
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-6 text-sm text-slate-600" colSpan={6}>
+                  <td className="px-4 py-6 text-sm text-slate-700" colSpan={6}>
                     No import runs found.
                   </td>
                 </tr>
@@ -254,7 +266,7 @@ export default function ImportHistoryPage() {
                 items.map((row) => (
                   <tr
                     key={row.runId}
-                    className="cursor-pointer border-t border-amber-100 hover:bg-amber-50/70"
+                    className="cursor-pointer border-t border-sky-100 hover:bg-sky-50/80"
                     onClick={() => openDetails(row.runId)}
                   >
                     <td className="px-4 py-3 text-sm text-slate-800">
@@ -264,12 +276,12 @@ export default function ImportHistoryPage() {
                       >
                         {row.sourceUrl}
                       </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-600">
                         <span>{row.sourceName}</span>
                         <Badge status={row.status} />
                       </div>
                       {row.status === "running" && row.meta?.totalBatches ? (
-                        <div className="mt-1 text-xs text-slate-500">
+                        <div className="mt-1 text-xs text-slate-600">
                           {row.meta.processedBatches || 0}/
                           {row.meta.totalBatches} batches
                         </div>
@@ -280,22 +292,22 @@ export default function ImportHistoryPage() {
                       {fmtDate(row.startedAt)}
                     </td>
 
-                    <td className="px-4 py-3 text-sm text-amber-700">
+                    <td className="px-4 py-3 text-sm text-sky-700">
                       <div className="font-semibold">
                         {row.totalImported ?? 0}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-slate-600">
                         fetched: {row.totalFetched ?? 0}
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 text-sm text-amber-700">
+                    <td className="px-4 py-3 text-sm text-sky-700">
                       {row.newJobs ?? 0}
                     </td>
-                    <td className="px-4 py-3 text-sm text-amber-700">
+                    <td className="px-4 py-3 text-sm text-sky-700">
                       {row.updatedJobs ?? 0}
                     </td>
-                    <td className="px-4 py-3 text-sm text-amber-700">
+                    <td className="px-4 py-3 text-sm text-sky-700">
                       {row.failedJobs ?? 0}
                     </td>
                   </tr>
@@ -305,8 +317,8 @@ export default function ImportHistoryPage() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between border-t border-amber-200 bg-amber-50/60 px-4 py-3">
-          <div className="text-xs text-slate-600">
+        <div className="flex items-center justify-between border-t border-sky-200 bg-sky-100/70 px-4 py-3">
+          <div className="text-xs text-slate-700">
             Page <span className="text-slate-800">{page}</span> of{" "}
             <span className="text-slate-800">{totalPages}</span>
           </div>
@@ -315,14 +327,14 @@ export default function ImportHistoryPage() {
             <button
               disabled={page <= 1 || loading}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded-lg border border-amber-200 px-3 py-1.5 text-sm text-slate-700 hover:bg-amber-50 disabled:opacity-50"
+              className="rounded-lg border border-sky-200 px-3 py-1.5 text-sm text-slate-700 hover:bg-sky-50 disabled:opacity-50"
             >
               Prev
             </button>
             <button
               disabled={page >= totalPages || loading}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="rounded-lg border border-amber-200 px-3 py-1.5 text-sm text-slate-700 hover:bg-amber-50 disabled:opacity-50"
+              className="rounded-lg border border-sky-200 px-3 py-1.5 text-sm text-slate-700 hover:bg-sky-50 disabled:opacity-50"
             >
               Next
             </button>

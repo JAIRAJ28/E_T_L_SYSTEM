@@ -26,7 +26,7 @@ async function streamImportLogs(req, res, next) {
       .sort({ startedAt: -1 })
       .limit(20)
       .select(
-        "runId sourceUrl sourceName status startedAt finishedAt totalFetched totalImported newJobs updatedJobs failedJobs meta.durationMs meta.totalBatches meta.processedBatches"
+        "runId sourceUrl sourceName status startedAt finishedAt totalFetched totalImported newJobs updatedJobs failedJobs data.durationMs data.totalBatches data.processedBatches"
       )
       .lean();
 
@@ -64,7 +64,7 @@ async function streamImportLogs(req, res, next) {
         newJobs: doc.newJobs,
         updatedJobs: doc.updatedJobs,
         failedJobs: doc.failedJobs,
-        meta: doc.meta,
+        meta: doc.data,
         updatedAt: doc.updatedAt,
       });
     };

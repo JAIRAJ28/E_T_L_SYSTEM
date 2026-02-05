@@ -9,15 +9,17 @@ import type {
 } from "@/types/importLog";
 import { getImportLog } from "@/lib/api";
 
+const cardShadow = { boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px" };
+
 function Badge({ status }: { status: ImportStatus }) {
   const cls =
     status === "completed"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      ? "bg-emerald-100 text-emerald-700 border-emerald-300"
       : status === "running"
-      ? "bg-amber-50 text-amber-700 border-amber-200"
+      ? "bg-sky-100 text-sky-700 border-sky-200"
       : status === "partial"
-      ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-      : "bg-rose-50 text-rose-700 border-rose-200";
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : "bg-rose-100 text-rose-700 border-rose-300";
 
   return (
     <span
@@ -60,31 +62,34 @@ function FailureRow({ f }: { f: ImportFailure }) {
   const jobUrl = f.sample?.jobUrl || f.sample?.url || null;
 
   return (
-    <div className="rounded-xl border border-amber-200/80 bg-white p-3">
+    <div
+      className="rounded-xl border border-sky-200 bg-white p-3"
+      style={cardShadow}
+    >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
+        <span className="rounded-full border border-sky-200 bg-sky-100 px-2 py-0.5 text-xs text-sky-700">
           {f.reasonCode || "ERROR"}
         </span>
-        <span className="text-xs text-slate-500">{f.at ? fmtDate(f.at) : ""}</span>
+        <span className="text-xs text-slate-600">{f.at ? fmtDate(f.at) : ""}</span>
       </div>
 
       <div className="mt-2 text-sm text-slate-700">
         {f.message || "Unknown error"}
       </div>
 
-      <div className="mt-2 text-xs text-slate-500">
+      <div className="mt-2 text-xs text-slate-600">
         <div>
-          <span className="text-slate-500">Title:</span>{" "}
+          <span className="text-slate-600">Title:</span>{" "}
           <span className="text-slate-800">{title}</span>
         </div>
         {jobUrl ? (
           <div className="mt-1">
-            <span className="text-slate-500">JobUrl:</span>{" "}
+            <span className="text-slate-600">JobUrl:</span>{" "}
             <a
               href={jobUrl}
               target="_blank"
               rel="noreferrer"
-              className="text-amber-700 hover:underline"
+              className="text-sky-700 hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
               {jobUrl}
@@ -93,7 +98,7 @@ function FailureRow({ f }: { f: ImportFailure }) {
         ) : null}
         {f.dedupeKey ? (
           <div className="mt-1">
-            <span className="text-slate-500">DedupeKey:</span>{" "}
+            <span className="text-slate-600">DedupeKey:</span>{" "}
             <span className="text-slate-800">{f.dedupeKey}</span>
           </div>
         ) : null}
@@ -101,10 +106,10 @@ function FailureRow({ f }: { f: ImportFailure }) {
 
       {f.sample ? (
         <details className="mt-2">
-          <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700">
+          <summary className="cursor-pointer text-xs text-slate-600 hover:text-slate-800">
             View sample
           </summary>
-          <pre className="mt-2 max-h-64 overflow-auto rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-slate-700">
+          <pre className="mt-2 max-h-64 overflow-auto rounded-lg border border-sky-200 bg-sky-50 p-3 text-xs text-slate-700">
             {safeJsonStringify(f.sample)}
           </pre>
         </details>
@@ -158,7 +163,7 @@ export default function ImportRunDetailsPage() {
             <h1 className="text-xl font-semibold">Import Run Details</h1>
             {item?.status ? <Badge status={item.status} /> : null}
           </div>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-slate-700">
             Run ID: <span className="text-slate-900">{runId || "-"}</span>
           </p>
         </div>
@@ -166,15 +171,15 @@ export default function ImportRunDetailsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => router.push("/import-history")}
-            className="rounded-lg border border-amber-200 px-3 py-2 text-sm text-slate-700 hover:bg-amber-50"
+            className="rounded-lg border border-sky-200 px-3 py-2 text-sm text-slate-700 hover:bg-sky-50"
           >
-            ← Back
+            Back
           </button>
 
           <button
             onClick={load}
             disabled={loading}
-            className="rounded-lg bg-amber-200 px-3 py-2 text-sm text-slate-900 hover:bg-amber-300 disabled:opacity-60"
+            className="rounded-lg bg-sky-500 px-3 py-2 text-sm text-white hover:bg-sky-600 disabled:opacity-60"
           >
             {loading ? "Refreshing..." : "Refresh"}
           </button>
@@ -188,25 +193,28 @@ export default function ImportRunDetailsPage() {
       ) : null}
 
       {loading && !item ? (
-        <div className="mt-4 text-sm text-slate-600">Loading...</div>
+        <div className="mt-4 text-sm text-slate-700">Loading...</div>
       ) : null}
 
       {item ? (
         <>
-          <div className="mt-5 rounded-xl border border-amber-200/80 bg-white p-4">
+          <div
+            className="mt-5 rounded-xl border border-sky-200 bg-white p-4"
+            style={cardShadow}
+          >
             <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
               <div className="md:col-span-8">
-                <div className="text-xs text-slate-500">FileName (Source URL)</div>
+                <div className="text-xs text-slate-600">FileName (Source URL)</div>
                 <div className="mt-1 break-all text-sm text-slate-800">
                   {item.sourceUrl}
                 </div>
-                <div className="mt-1 text-xs text-slate-500">
+                <div className="mt-1 text-xs text-slate-600">
                   {item.sourceName}
                 </div>
               </div>
 
               <div className="md:col-span-4">
-                <div className="text-xs text-slate-500">Timing</div>
+                <div className="text-xs text-slate-600">Timing</div>
                 <div className="mt-1 text-sm text-slate-700">
                   Started: {fmtDate(item.startedAt)}
                 </div>
@@ -221,70 +229,88 @@ export default function ImportRunDetailsPage() {
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-            <div className="rounded-xl border border-amber-200/80 bg-white p-4">
-              <div className="text-xs text-slate-500">Total Imported</div>
-              <div className="mt-1 text-lg font-semibold text-amber-700">
+            <div
+              className="rounded-xl border border-sky-200 bg-white p-4"
+              style={cardShadow}
+            >
+              <div className="text-xs text-slate-600">Total Imported</div>
+              <div className="mt-1 text-lg font-semibold text-sky-700">
                 {item.totalImported ?? 0}
               </div>
-              <div className="mt-1 text-xs text-slate-500">
+              <div className="mt-1 text-xs text-slate-600">
                 Fetched: {item.totalFetched ?? 0}
               </div>
             </div>
 
-            <div className="rounded-xl border border-amber-200/80 bg-white p-4">
-              <div className="text-xs text-slate-500">New</div>
-              <div className="mt-1 text-lg font-semibold text-amber-700">
+            <div
+              className="rounded-xl border border-sky-200 bg-white p-4"
+              style={cardShadow}
+            >
+              <div className="text-xs text-slate-600">New</div>
+              <div className="mt-1 text-lg font-semibold text-sky-700">
                 {item.newJobs ?? 0}
               </div>
             </div>
 
-            <div className="rounded-xl border border-amber-200/80 bg-white p-4">
-              <div className="text-xs text-slate-500">Updated</div>
-              <div className="mt-1 text-lg font-semibold text-amber-700">
+            <div
+              className="rounded-xl border border-sky-200 bg-white p-4"
+              style={cardShadow}
+            >
+              <div className="text-xs text-slate-600">Updated</div>
+              <div className="mt-1 text-lg font-semibold text-sky-700">
                 {item.updatedJobs ?? 0}
               </div>
             </div>
 
-            <div className="rounded-xl border border-amber-200/80 bg-white p-4">
-              <div className="text-xs text-slate-500">Failed</div>
-              <div className="mt-1 text-lg font-semibold text-amber-700">
+            <div
+              className="rounded-xl border border-sky-200 bg-white p-4"
+              style={cardShadow}
+            >
+              <div className="text-xs text-slate-600">Failed</div>
+              <div className="mt-1 text-lg font-semibold text-sky-700">
                 {item.failedJobs ?? 0}
               </div>
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-amber-200/80 bg-white p-4">
+          <div
+            className="mt-4 rounded-xl border border-sky-200 bg-white p-4"
+            style={cardShadow}
+          >
             <div className="flex items-center justify-between">
               <div className="text-sm font-medium">Batch Progress</div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-slate-600">
                 {processedBatches}/{totalBatches} ({progressPct}%)
               </div>
             </div>
 
-            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-amber-100">
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-sky-100">
               <div
-                className="h-full bg-amber-400"
+                className="h-full bg-sky-500"
                 style={{ width: `${progressPct}%` }}
               />
             </div>
 
-            <div className="mt-2 text-xs text-slate-500">
-              Batch Size: {item.meta?.batchSize ?? "-"} • Concurrency:{" "}
-              {item.meta?.concurrency ?? "-"} • Attempts: {item.meta?.attempts ?? "-"}
+            <div className="mt-2 text-xs text-slate-600">
+              Batch Size: {item.meta?.batchSize ?? "-"} - Concurrency:{" "}
+              {item.meta?.concurrency ?? "-"} - Attempts: {item.meta?.attempts ?? "-"}
             </div>
           </div>
 
           <div className="mt-5">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">Failures</h2>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-slate-600">
                 Showing up to capped samples (backend limit)
               </div>
             </div>
 
             <div className="mt-3 space-y-3">
               {(item.failures || []).length === 0 ? (
-                <div className="rounded-xl border border-amber-200/80 bg-white p-4 text-sm text-slate-600">
+                <div
+                  className="rounded-xl border border-sky-200 bg-white p-4 text-sm text-slate-700"
+                  style={cardShadow}
+                >
                   No failures recorded for this run.
                 </div>
               ) : (

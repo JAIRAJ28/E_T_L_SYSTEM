@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-amber-50 text-slate-900">
+    <div className="min-h-screen bg-sky-50 text-slate-900">
       <Navbar />
       <div className="flex">
         <Sidebar />
