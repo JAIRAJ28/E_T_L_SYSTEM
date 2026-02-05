@@ -107,7 +107,7 @@ function normalizeJob({ sourceUrl, sourceName, rawItem }) {
     jobType: pickFirst(rawItem?.jobType, rawItem?.["job:type"]) || null,
     region: pickFirst(rawItem?.region, rawItem?.["job:region"]) || null,
     publishedAt,
-    raw: rawItem, 
+    raw: process.env.NODE_ENV === "development" ? rawItem : null 
   };
 }
 

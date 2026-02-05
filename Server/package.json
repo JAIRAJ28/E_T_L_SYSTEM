@@ -4,10 +4,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "api": "node index.js",
     "worker": "node workers/workerRunner.js",
     "cron": "node cron/cronProcess.js",
-    "dev:all": "concurrently -k -n API,WORKER,CRON -c blue,green,magenta \"npm run dev\" \"npm run worker\" \"npm run cron\"",
-    "dev": "nodemon index.js",
+    "dev:api": "nodemon index.js",
+    "dev:worker": "nodemon workers/workerRunner.js",
+    "dev:cron": "nodemon cron/cronProcess.js",
+    "dev:all": "concurrently -k -n API,WORKER,CRON -c blue,green,magenta \"npm run dev:api\" \"npm run dev:worker\" \"npm run dev:cron\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

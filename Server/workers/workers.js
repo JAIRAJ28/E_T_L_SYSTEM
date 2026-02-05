@@ -182,6 +182,7 @@ async function updateImportLogAfterBatch({
       updatedJobs: updatedCount,
       failedJobs: failedCount,
       "meta.processedBatches": 1,
+      "meta.attempts": 1,
     },
   };
   if (pushFailures.length > 0) {
@@ -189,20 +190,20 @@ async function updateImportLogAfterBatch({
   }
   await ImportLog.updateOne({ runId }, update);
   const latest = await ImportLog.findOne({ runId })
-    .select("status startedAt meta.totalBatches meta.processedBatches")
+    .select("status startedAt failedJobs meta.totalBatches meta.processedBatches")
     .lean();
   const total = latest?.meta?.totalBatches ?? totalBatches ?? 0;
   const processed = latest?.meta?.processedBatches ?? 0;
-
   if (latest?.status === "running" && total > 0 && processed >= total) {
     const startedAt = latest?.startedAt
       ? new Date(latest.startedAt).getTime()
       : Date.now();
+    const finalStatus = (latest?.failedJobs || 0) > 0 ? "partial" : "completed";
     await ImportLog.updateOne(
       { runId },
       {
         $set: {
-          status: "completed",
+          status: finalStatus,
           finishedAt: new Date(),
           "meta.durationMs": Date.now() - startedAt,
         },
@@ -226,19 +227,15 @@ function startWorker() {
       concurrency: config.import.workerConcurrency,
     },
   );
-  
   worker.on("completed", (job, result) => {
     console.log("[Worker] completed", job.id, job.name, result);
   });
-
   worker.on("failed", (job, err) => {
     console.error("[Worker] failed", job?.id, job?.name, err?.message || err);
   });
-
   worker.on("error", (err) => {
     console.error("[Worker] error:", err?.message || err);
   });
-
   console.log(
     `[Worker] started on queue=${QUEUE_NAME} concurrency=${config.import.workerConcurrency}`,
   );
